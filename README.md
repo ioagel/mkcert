@@ -29,7 +29,7 @@ mkcert automatically creates and installs a local CA in the system root store, a
 
 > **Warning**: the `rootCA-key.pem` file that mkcert automatically generates gives complete power to intercept secure requests from your machine. Do not share it.
 
-### Linux
+### Linux / macOS
 
 On Linux, first install `certutil`.
 
@@ -43,7 +43,20 @@ sudo pacman -S nss
 sudo zypper install mozilla-nss-tools
 ```
 
-Build from source (requires Go 1.13+)
+On macOS, use [Homebrew](https://brew.sh/)
+
+```sh
+brew install nss # if you use Firefox
+```
+
+or [MacPorts](https://www.macports.org/).
+
+```sh
+sudo port selfupdate
+sudo port install nss # if you use Firefox
+```
+
+Finally, build from source (requires Go 1.13+)
 
 ```sh
 git clone https://github.com/ioagel/mkcert.git && cd mkcert
