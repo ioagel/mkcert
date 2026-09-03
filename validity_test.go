@@ -253,10 +253,9 @@ func TestDefaultValidity(t *testing.T) {
 	}
 
 	// Default CA validity is 10 years
-	now := time.Now()
-	expectedCAExpire := now.AddDate(10, 0, 0)
-	if diff := caCert.NotAfter.Sub(expectedCAExpire); diff < -5*time.Second || diff > 5*time.Second {
-		t.Errorf("Default CA NotAfter: got %v, want near %v", caCert.NotAfter, expectedCAExpire)
+	expectedCAExpire := caCert.NotBefore.AddDate(10, 0, 0)
+	if !caCert.NotAfter.Equal(expectedCAExpire) {
+		t.Errorf("Default CA NotAfter: got %v, want %v", caCert.NotAfter, expectedCAExpire)
 	}
 
 	// Generate leaf cert with defaults
@@ -268,9 +267,9 @@ func TestDefaultValidity(t *testing.T) {
 	}
 
 	// Default leaf cert validity is 2 years 3 months
-	expectedLeafExpire := now.AddDate(2, 3, 0)
-	if diff := leafCert.NotAfter.Sub(expectedLeafExpire); diff < -5*time.Second || diff > 5*time.Second {
-		t.Errorf("Default leaf cert NotAfter: got %v, want near %v", leafCert.NotAfter, expectedLeafExpire)
+	expectedLeafExpire := leafCert.NotBefore.AddDate(2, 3, 0)
+	if !leafCert.NotAfter.Equal(expectedLeafExpire) {
+		t.Errorf("Default leaf cert NotAfter: got %v, want %v", leafCert.NotAfter, expectedLeafExpire)
 	}
 }
 
@@ -297,10 +296,9 @@ func TestCLIFlagsExecution(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to read CA cert: %v", err)
 	}
-	now := time.Now()
-	expectedCAExpire := now.AddDate(1, 0, 0)
-	if diff := caCert.NotAfter.Sub(expectedCAExpire); diff < -5*time.Second || diff > 5*time.Second {
-		t.Errorf("CLI CA NotAfter: got %v, want near %v", caCert.NotAfter, expectedCAExpire)
+	expectedCAExpire := caCert.NotBefore.AddDate(1, 0, 0)
+	if !caCert.NotAfter.Equal(expectedCAExpire) {
+		t.Errorf("CLI CA NotAfter: got %v, want %v", caCert.NotAfter, expectedCAExpire)
 	}
 
 	// Verify leaf cert validity is 90 days
@@ -308,9 +306,9 @@ func TestCLIFlagsExecution(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to read leaf cert: %v", err)
 	}
-	expectedLeafExpire := now.AddDate(0, 0, 90)
-	if diff := leafCert.NotAfter.Sub(expectedLeafExpire); diff < -5*time.Second || diff > 5*time.Second {
-		t.Errorf("CLI leaf NotAfter: got %v, want near %v", leafCert.NotAfter, expectedLeafExpire)
+	expectedLeafExpire := leafCert.NotBefore.AddDate(0, 0, 90)
+	if !leafCert.NotAfter.Equal(expectedLeafExpire) {
+		t.Errorf("CLI leaf NotAfter: got %v, want %v", leafCert.NotAfter, expectedLeafExpire)
 	}
 }
 
@@ -369,10 +367,9 @@ func TestCLIEnvironmentVariables(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to read CA cert: %v", err)
 	}
-	now := time.Now()
-	expectedCAExpire := now.AddDate(3, 0, 0)
-	if diff := caCert.NotAfter.Sub(expectedCAExpire); diff < -5*time.Second || diff > 5*time.Second {
-		t.Errorf("Env CA NotAfter: got %v, want near %v", caCert.NotAfter, expectedCAExpire)
+	expectedCAExpire := caCert.NotBefore.AddDate(3, 0, 0)
+	if !caCert.NotAfter.Equal(expectedCAExpire) {
+		t.Errorf("Env CA NotAfter: got %v, want %v", caCert.NotAfter, expectedCAExpire)
 	}
 
 	// Check leaf has 45d validity
@@ -380,8 +377,8 @@ func TestCLIEnvironmentVariables(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to read leaf cert: %v", err)
 	}
-	expectedLeafExpire := now.AddDate(0, 0, 45)
-	if diff := leafCert.NotAfter.Sub(expectedLeafExpire); diff < -5*time.Second || diff > 5*time.Second {
-		t.Errorf("Env leaf NotAfter: got %v, want near %v", leafCert.NotAfter, expectedLeafExpire)
+	expectedLeafExpire := leafCert.NotBefore.AddDate(0, 0, 45)
+	if !leafCert.NotAfter.Equal(expectedLeafExpire) {
+		t.Errorf("Env leaf NotAfter: got %v, want %v", leafCert.NotAfter, expectedLeafExpire)
 	}
 }
