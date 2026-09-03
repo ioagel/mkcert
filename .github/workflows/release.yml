@@ -9,14 +9,14 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Install Go
-        uses: actions/setup-go@v7
-        with:
-          go-version: 1.x
       - name: Checkout repository
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
+      - name: Install Go
+        uses: actions/setup-go@v7
+        with:
+          go-version: 1.x
       - name: Build binaries
         run: |
           CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o "mkcert-$(git describe --tags)-linux-amd64" -ldflags "-X main.Version=$(git describe --tags)"
