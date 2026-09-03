@@ -29,23 +29,6 @@ mkcert automatically creates and installs a local CA in the system root store, a
 
 > **Warning**: the `rootCA-key.pem` file that mkcert automatically generates gives complete power to intercept secure requests from your machine. Do not share it.
 
-### macOS
-
-On macOS, use [Homebrew](https://brew.sh/)
-
-```sh
-brew install mkcert
-brew install nss # if you use Firefox
-```
-
-or [MacPorts](https://www.macports.org/).
-
-```sh
-sudo port selfupdate
-sudo port install mkcert
-sudo port install nss # if you use Firefox
-```
-
 ### Linux
 
 On Linux, first install `certutil`.
@@ -60,49 +43,16 @@ sudo pacman -S nss
 sudo zypper install mozilla-nss-tools
 ```
 
-Then you can install using [Homebrew on Linux](https://docs.brew.sh/Homebrew-on-Linux)
+Build from source (requires Go 1.13+)
 
 ```sh
-brew install mkcert
-```
-
-or build from source (requires Go 1.13+)
-
-```sh
-git clone https://github.com/FiloSottile/mkcert && cd mkcert
+git clone https://github.com/ioagel/mkcert.git && cd mkcert
 go build -ldflags "-X main.Version=$(git describe --tags)"
-```
-
-or use [the pre-built binaries](https://github.com/FiloSottile/mkcert/releases).
-
-```sh
-curl -JLO "https://dl.filippo.io/mkcert/latest?for=linux/amd64"
-chmod +x mkcert-v*-linux-amd64
-sudo cp mkcert-v*-linux-amd64 /usr/local/bin/mkcert
-```
-
-For Arch Linux users, [`mkcert`](https://archlinux.org/packages/extra/x86_64/mkcert/) is available on the official Arch Linux repository.
-
-```sh
-sudo pacman -Syu mkcert
 ```
 
 ### Windows
 
-On Windows, use [Chocolatey](https://chocolatey.org)
-
-```sh
-choco install mkcert
-```
-
-or use Scoop
-
-```sh
-scoop bucket add extras
-scoop install mkcert
-```
-
-or build from source (requires Go 1.10+), or use [the pre-built binaries](https://github.com/FiloSottile/mkcert/releases).
+Build from source (requires Go 1.10+)
 
 If you're running into permission problems try running `mkcert` as an Administrator.
 
