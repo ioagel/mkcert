@@ -21,6 +21,7 @@ import (
 	"regexp"
 	"runtime"
 	"runtime/debug"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -65,12 +66,29 @@ const advancedUsage = `Advanced options:
 	    Generate a certificate based on the supplied CSR. Conflicts with
 	    all other flags and arguments except -install and -cert-file.
 
+	-validity DURATION, -cert-validity DURATION
+	    Set custom validity for the certificate (e.g. 2y3m, 365d, 30d, 24h).
+	    Defaults to 2 years and 3 months.
+
+	-days DAYS
+	    Set custom certificate validity in days (alias for -validity DAYSd).
+
+	-ca-validity DURATION
+	    Set custom validity for the CA certificate when creating a new CA
+	    (e.g. 10y, 5y, 3650d). Defaults to 10 years.
+
 	-CAROOT
 	    Print the CA certificate and key storage location.
 
 	$CAROOT (environment variable)
 	    Set the CA certificate and key storage location. (This allows
 	    maintaining multiple local CAs in parallel.)
+
+	$CA_VALIDITY (environment variable)
+	    Set custom validity for the CA certificate when creating a new CA.
+
+	$CERT_VALIDITY (environment variable)
+	    Set custom validity for certificates.
 
 	$TRUST_STORES (environment variable)
 	    A comma-separated list of trust stores to install the local
@@ -99,10 +117,14 @@ func main() {
 		helpFlag      = flag.Bool("help", false, "")
 		carootFlag    = flag.Bool("CAROOT", false, "")
 		csrFlag       = flag.String("csr", "", "")
-		certFileFlag  = flag.String("cert-file", "", "")
-		keyFileFlag   = flag.String("key-file", "", "")
-		p12FileFlag   = flag.String("p12-file", "", "")
-		versionFlag   = flag.Bool("version", false, "")
+		certFileFlag     = flag.String("cert-file", "", "")
+		keyFileFlag      = flag.String("key-file", "", "")
+		p12FileFlag      = flag.String("p12-file", "", "")
+		versionFlag      = flag.Bool("version", false, "")
+		caValidityFlag   = flag.String("ca-validity", "", "")
+		certValidityFlag = flag.String("cert-validity", "", "")
+		validityFlag     = flag.String("validity", "", "")
+		daysFlag         = flag.Int("days", 0, "")
 	)
 	flag.Usage = func() {
 		fmt.Fprint(flag.CommandLine.Output(), shortUsage)
@@ -142,10 +164,48 @@ func main() {
 	if *csrFlag != "" && flag.NArg() != 0 {
 		log.Fatalln("ERROR: can't specify extra arguments when using -csr")
 	}
+
+	caValidity := *caValidityFlag
+	if caValidity == "" {
+		caValidity = os.Getenv("CA_VALIDITY")
+	}
+	if caValidity != "" {
+		if _, err := parseValidity(caValidity); err != nil {
+			log.Fatalf("ERROR: invalid CA validity %q: %s\n", caValidity, err)
+		}
+	}
+
+	if *daysFlag < 0 {
+		log.Fatalln("ERROR: -days must be greater than zero")
+	}
+	if *daysFlag > 0 && (*certValidityFlag != "" || *validityFlag != "") {
+		log.Fatalln("ERROR: cannot specify both -days and -validity/-cert-validity")
+	}
+	if *certValidityFlag != "" && *validityFlag != "" && *certValidityFlag != *validityFlag {
+		log.Fatalln("ERROR: cannot specify differing values for -cert-validity and -validity")
+	}
+
+	certValidity := *certValidityFlag
+	if certValidity == "" {
+		certValidity = *validityFlag
+	}
+	if certValidity == "" && *daysFlag > 0 {
+		certValidity = strconv.Itoa(*daysFlag) + "d"
+	}
+	if certValidity == "" {
+		certValidity = os.Getenv("CERT_VALIDITY")
+	}
+	if certValidity != "" {
+		if _, err := parseValidity(certValidity); err != nil {
+			log.Fatalf("ERROR: invalid certificate validity %q: %s\n", certValidity, err)
+		}
+	}
+
 	(&mkcert{
 		installMode: *installFlag, uninstallMode: *uninstallFlag, csrPath: *csrFlag,
 		pkcs12: *pkcs12Flag, ecdsa: *ecdsaFlag, client: *clientFlag,
 		certFile: *certFileFlag, keyFile: *keyFileFlag, p12File: *p12FileFlag,
+		caValidity: caValidity, certValidity: certValidity,
 	}).Run(flag.Args())
 }
 
@@ -157,6 +217,7 @@ type mkcert struct {
 	pkcs12, ecdsa, client      bool
 	keyFile, certFile, p12File string
 	csrPath                    string
+	caValidity, certValidity   string
 
 	CAROOT string
 	caCert *x509.Certificate
